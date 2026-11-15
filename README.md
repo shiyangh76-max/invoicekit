@@ -2,7 +2,9 @@
 
 An invoice you edit on the page itself. Click a line, type, print to PDF. Bilingual labels, nine currencies, no account.
 
-![InvoiceKit](./og.png)
+![invoicekit](./og.png)
+
+**Live demo: https://shiyangh76-max.github.io/invoicekit/**
 
 ## What it does
 
