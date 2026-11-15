@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>InvoiceKit: an invoice you edit on the page itself</title>
+<meta name="description" content="Click any line on the A4 sheet and type. Bilingual labels, nine currencies, tax and discounts, printed to PDF from your browser. Free and open source.">
+<meta property="og:title" content="InvoiceKit: an invoice in two minutes, in two languages">
+<meta property="og:description" content="Edit the document itself, print to PDF. No account, no upload.">
+<meta property="og:image" content="./og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2315161a'/><text x='16' y='22' font-family='monospace' font-size='15' font-weight='700' fill='%23fff' text-anchor='middle'>I</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand"><span class="mark">IK</span>InvoiceKit</div>
+    <span class="save-state" id="saveState">Saved</span>
+    <div class="top-actions">
+      <button class="ghost sm" id="btnPalette" type="button" aria-label="Command palette"><kbd>⌘</kbd><kbd>K</kbd></button>
+      <a class="ghost sm" href="https://github.com/shiyangh76-max/invoicekit" target="_blank" rel="noopener">GitHub</a>
+      <button class="btn" id="btnPrint" type="button">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M7 9V4h10v5M7 18H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M7 14h10v6H7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        Print / PDF
+      </button>
+    </div>
+  </header>
+
+  <div class="workspace">
+
+    <aside class="rail" aria-label="Zoom">
+      <button class="rail-btn" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+      <span class="zoom-val" id="zoomVal">78%</span>
+      <button class="rail-btn" id="zoomOut" type="button" aria-label="Zoom out">−</button>
+      <button class="rail-btn" id="zoomFit" type="button" aria-label="Fit to screen">⤢</button>
+      <div class="rail-sep"></div>
+      <span class="page-label">A4</span>
+    </aside>
+
+    <main class="canvas" id="canvas">
+      <article class="sheet" id="sheet" aria-label="Invoice document">
+        <header class="s-top">
+          <div class="s-who">
+            <div class="s-logo" id="logoBox" hidden><img id="logoImg" alt="Logo"></div>
+            <div>
+              <h1 class="s-biz" contenteditable="true" data-f="biz.name" spellcheck="false"></h1>
+              <p class="s-meta" id="bizMeta"></p>
+            </div>
+          </div>
+          <div class="s-doc">
+            <p class="s-kind" id="kindLabel">INVOICE</p>
+            <p class="s-no"><span contenteditable="true" data-f="number" spellcheck="false"></span></p>
+            <p class="s-dates" id="dateLine"></p>
+          </div>
+        </header>
+
+        <section class="s-parties">
+          <div>
+            <p class="s-label" id="billLabel">BILL TO</p>
+            <p class="s-client" contenteditable="true" data-f="cli.name" spellcheck="false"></p>
+            <p class="s-meta" id="cliMeta"></p>
+          </div>
+          <div class="s-due">
+            <p class="s-label" id="dueLabel">AMOUNT DUE</p>
+            <p class="s-big" id="dueAmount">$0.00</p>
+          </div>
+        </section>
+
+        <table class="s-lines">
+          <thead>
+            <tr>
+              <th class="c-desc" id="thDesc">DESCRIPTION</th>
+              <th class="c-qty" id="thQty">QTY</th>
+              <th class="c-rate" id="thRate">RATE</th>
+              <th class="c-amt" id="thAmt">AMOUNT</th>
+              <th class="c-op"></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <button class="add-row" id="addRow" type="button">+ Add line</button>
+
+        <section class="s-sum">
+          <div class="s-notes">
+            <p class="s-label" id="payLabel">PAYMENT DETAILS</p>
+            <p class="s-small" contenteditable="true" data-f="pay" spellcheck="false"></p>
+            <p class="s-label" id="noteLabel" style="margin-top:14px">NOTES</p>
+            <p class="s-small" contenteditable="true" data-f="notes" spellcheck="false"></p>
+          </div>
+          <table class="s-totals">
+            <tr><td id="tSubLabel">Subtotal</td><td id="tSub">$0.00</td></tr>
+            <tr id="rowDiscount" hidden><td id="tDiscLabel">Discount</td><td id="tDisc">-$0.00</td></tr>
+            <tr id="rowTax" hidden><td id="tTaxLabel">Tax</td><td id="tTax">$0.00</td></tr>
+            <tr class="grand"><td id="tTotLabel">Total</td><td id="tTot">$0.00</td></tr>
+          </table>
+        </section>
+
+        <footer class="s-foot">
+          <span id="thanksLabel">Thank you for your business.</span>
+          <span class="s-brandline">InvoiceKit</span>
+        </footer>
+      </article>
+    </main>
+
+    <aside class="inspector">
+      <div class="insp-tabs" role="tablist">
+        <button class="tab is-on" data-tab="doc" role="tab" type="button">Document</button>
+        <button class="tab" data-tab="money" role="tab" type="button">Money</button>
+        <button class="tab" data-tab="brand" role="tab" type="button">Brand</button>
+      </div>
+
+      <div class="insp-pane is-on" data-pane="doc">
+        <section class="field">
+          <label>Type</label>
+          <div class="seg">
+            <button class="seg-btn is-on" data-type="invoice" type="button">Invoice</button>
+            <button class="seg-btn" data-type="quote" type="button">Quote</button>
+          </div>
+        </section>
+        <section class="field">
+          <label>Language</label>
+          <div class="seg">
+            <button class="seg-btn" data-lang="en" type="button">EN</button>
+            <button class="seg-btn" data-lang="zh" type="button">中文</button>
+            <button class="seg-btn is-on" data-lang="both" type="button">Both</button>
+          </div>
+        </section>
+        <section class="field">
+          <label for="currency">Currency</label>
+          <select id="currency">
+            <option value="USD">USD $</option><option value="EUR">EUR €</option><option value="CNY">CNY ¥</option>
+            <option value="GBP">GBP £</option><option value="JPY">JPY ¥</option><option value="AUD">AUD $</option>
+            <option value="CAD">CAD $</option><option value="SGD">SGD $</option><option value="HKD">HKD $</option>
+          </select>
+        </section>
+        <section class="two">
+          <div class="field"><label for="issue">Issued</label><input id="issue" type="date"></div>
+          <div class="field"><label for="due">Due</label><input id="due" type="date"></div>
+        </section>
+        <section class="field">
+          <label for="bizEmail">Your email</label>
+          <input id="bizEmail" type="email" placeholder="hello@studio.com">
+        </section>
+        <section class="field">
+          <label for="bizAddr">Your address</label>
+          <textarea id="bizAddr" rows="2" placeholder="Unit 12, Nanshan, Shenzhen"></textarea>
+        </section>
+        <section class="field">
+          <label for="cliEmail">Client email</label>
+          <input id="cliEmail" type="email" placeholder="ap@client.com">
+        </section>
+        <section class="field">
+          <label for="cliAddr">Client address</label>
+          <textarea id="cliAddr" rows="2" placeholder="2200 Westlake Ave, Seattle"></textarea>
+        </section>
+        <p class="tip">Tip: most text on the sheet is editable in place. Click it and type.</p>
+      </div>
+
+      <div class="insp-pane" data-pane="money">
+        <section class="two">
+          <div class="field"><label for="tax">Tax %</label><input id="tax" type="number" min="0" max="99" step="0.5" value="0"></div>
+          <div class="field"><label for="discount">Discount</label><input id="discount" type="number" min="0" step="1" value="0"></div>
+        </section>
+        <section class="field">
+          <label>Discount is</label>
+          <div class="seg">
+            <button class="seg-btn is-on" data-disc="amount" type="button">Amount</button>
+            <button class="seg-btn" data-disc="percent" type="button">Percent</button>
+          </div>
+        </section>
+        <div class="readout">
+          <div><span>Subtotal</span><b id="roSub">$0.00</b></div>
+          <div><span>Discount</span><b id="roDisc">$0.00</b></div>
+          <div><span>Tax</span><b id="roTax">$0.00</b></div>
+          <div class="total"><span>Total</span><b id="roTot">$0.00</b></div>
+        </div>
+        <p class="tip">Tax is calculated after the discount, which is the usual convention.</p>
+      </div>
+
+      <div class="insp-pane" data-pane="brand">
+        <section class="field">
+          <label>Accent</label>
+          <div class="swatches">
+            <button class="sw is-on" data-accent="#1f3fd0" style="--sw:#1f3fd0" type="button" aria-label="Cobalt"></button>
+            <button class="sw" data-accent="#15161a" style="--sw:#15161a" type="button" aria-label="Ink"></button>
+            <button class="sw" data-accent="#1f6b4a" style="--sw:#1f6b4a" type="button" aria-label="Emerald"></button>
+            <button class="sw" data-accent="#a8452a" style="--sw:#a8452a" type="button" aria-label="Rust"></button>
+          </div>
+        </section>
+        <section class="field">
+          <label>Logo</label>
+          <div class="logo-drop" id="logoDrop">
+            <span id="logoName">Drop an image or click</span>
+            <input id="logoInput" type="file" accept="image/*" hidden>
+          </div>
+          <button class="ghost sm" id="clearLogo" type="button" hidden>Remove logo</button>
+        </section>
+        <section class="field">
+          <label>Document</label>
+          <button class="ghost sm" id="resetDoc" type="button">Start a new invoice</button>
+        </section>
+        <p class="tip">Everything is stored in this browser only. Nothing is uploaded.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<section class="below">
+  <div class="below-inner">
+    <h2>Why the page is the interface</h2>
+    <div class="three">
+      <div><h3>No form, no preview</h3><p>Half the invoice tools in the world make you fill a form and squint at a small preview. Here the A4 page is the editor: click a line, type, done. The printed result is what you were looking at.</p></div>
+      <div><h3>Two languages by default</h3><p>Labels print as "INVOICE / 发票", "AMOUNT DUE / 应付金额", "Total / 合计". One document, readable on both sides of a cross-border deal.</p></div>
+      <div><h3>Real PDF, selectable text</h3><p>Printing uses the browser engine, so the PDF has text rather than a screenshot. Invoice numbers stay searchable and totals stay copyable.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="below">
+  <div class="below-inner">
+    <h2>Free and open source</h2>
+    <p class="below-lede">MIT licensed, one HTML file, no server, no account. Fork it and change the layout to your taste.</p>
+    <div class="oss">
+      <a class="oss-card" href="https://github.com/shiyangh76-max/invoicekit" target="_blank" rel="noopener"><b>Source</b><span>github.com/shiyangh76-max/invoicekit</span></a>
+      <a class="oss-card" href="https://github.com/shiyangh76-max/invoicekit/issues/new" target="_blank" rel="noopener"><b>Report a bug</b><span>One issue, one PDF</span></a>
+      <a class="oss-card" href="https://github.com/shiyangh76-max/invoicekit/issues" target="_blank" rel="noopener"><b>Roadmap</b><span>What is next, in the open</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="below faq">
+  <div class="below-inner">
+    <h2>Questions</h2>
+    <details><summary>Where is my data stored?</summary><p>In this browser's local storage, on this device. Clear site data and it is gone, so keep a PDF of anything you need to keep.</p></details>
+    <details><summary>Can I use it for quotes?</summary><p>Switch the type to Quote and the heading changes to QUOTE / 报价单. The rest of the layout and the totals stay the same.</p></details>
+    <details><summary>What about tax and discounts?</summary><p>Set a rate and a discount as an amount or a percentage. Tax is calculated on the discounted subtotal, and the total updates while you type.</p></details>
+    <details><summary>Why does printing need a dialog?</summary><p>There is no server, so the browser's own PDF engine does the work. Choose "Save as PDF" and set margins to none for an exact A4 page.</p></details>
+  </div>
+</section>
+
+<footer class="foot"><span>InvoiceKit · MIT · runs on your machine</span><a href="https://github.com/shiyangh76-max/invoicekit" target="_blank" rel="noopener">Source</a></footer>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<div class="palette" id="palette" hidden>
+  <div class="palette-card" role="dialog" aria-modal="true" aria-label="Commands">
+    <input id="paletteInput" type="text" placeholder="Type a command…" autocomplete="off" spellcheck="false">
+    <ul id="paletteList"></ul>
+    <div class="palette-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>↵</kbd> run</span><span><kbd>esc</kbd> close</span></div>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
